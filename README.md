@@ -17,7 +17,7 @@ A modern e-commerce storefront for handcrafted sterling silver jewelry, built wi
 |---|---|
 | Framework | Next.js 16 (App Router) |
 | UI | React 19 + Tailwind CSS v4 |
-| Payments | Stripe Checkout (hosted) |
+| Payments | Clover Hosted Checkout |
 | Language | TypeScript |
 | Font | Geist (via next/font) |
 
@@ -53,17 +53,23 @@ public/
 npm install
 ```
 
-### 2. Configure Stripe
+### 2. Configure Clover
 
 Create a `.env.local` file in the project root:
 
 ```env
-# Get your keys at https://dashboard.stripe.com/apikeys
-STRIPE_SECRET_KEY=sk_test_YOUR_KEY_HERE
+# Clover Dashboard → Account & Setup → Ecommerce API Tokens
+CLOVER_PRIVATE_KEY=your_private_key_here
+CLOVER_MERCHANT_ID=your_merchant_id_here
+
+# Sandbox for testing, production for live
+CLOVER_API_BASE_URL=https://apisandbox.dev.clover.com
+
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
 ```
 
-> Use test keys (`sk_test_...`) during development. Never commit `.env.local` — it is listed in `.gitignore`.
+> Never commit `.env.local` — it is listed in `.gitignore`.
+> Switch `CLOVER_API_BASE_URL` to `https://api.clover.com` when going live.
 
 ### 3. Run the development server
 
@@ -73,20 +79,13 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Stripe Test Cards
+## Clover Test Cards
 
-Use these card numbers on the Stripe Checkout page during testing:
-
-| Card | Number |
-|---|---|
-| Successful payment | `4242 4242 4242 4242` |
-| Payment declined | `4000 0000 0000 0002` |
-
-Use any future expiry date and any 3-digit CVC.
+Use Clover's sandbox environment (`apisandbox.dev.clover.com`) during development. Clover provides test card numbers in their [sandbox documentation](https://docs.clover.com/dev/docs/test-card-numbers).
 
 ## Deployment
 
-The easiest way to deploy is [Vercel](https://vercel.com). Add your `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_BASE_URL` as environment variables in the Vercel dashboard.
+The easiest way to deploy is [Vercel](https://vercel.com). Add `CLOVER_PRIVATE_KEY`, `CLOVER_MERCHANT_ID`, `CLOVER_API_BASE_URL`, and `NEXT_PUBLIC_BASE_URL` as environment variables in the Vercel dashboard. Set `CLOVER_API_BASE_URL` to `https://api.clover.com` for production.
 
 ```bash
 # Production build check

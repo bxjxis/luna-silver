@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import Stripe from 'stripe';
 
 type CartItem = {
   id: number;
@@ -8,17 +7,30 @@ type CartItem = {
   quantity: number;
 };
 
+type CloverCheckoutResponse = {
+  href: string;
+  checkoutSessionId: string;
+  createdTime: number;
+  expirationTime: number;
+};
+
 export async function POST(req: Request) {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) {
+  const privateKey = process.env.CLOVER_PRIVATE_KEY;
+  const merchantId = process.env.CLOVER_MERCHANT_ID;
+
+  if (!privateKey || !merchantId) {
     return NextResponse.json(
-      { error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to .env.local' },
+      {
+        error:
+          'Clover is not configured. Add CLOVER_PRIVATE_KEY and CLOVER_MERCHANT_ID to .env.local',
+      },
       { status: 500 }
     );
   }
 
-  const stripe = new Stripe(secretKey);
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+  const cloverApiBase =
+    process.env.CLOVER_API_BASE_URL ?? 'https://apisandbox.dev.clover.com';
 
   const { items }: { items: CartItem[] } = await req.json();
 
@@ -26,22 +38,42 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Cart is empty' }, { status: 400 });
   }
 
-  const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
-    mode: 'payment',
-    line_items: items.map((item) => ({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: item.name,
-        },
-        unit_amount: item.price * 100, // Stripe uses cents
+  const res = await fetch(
+    `${cloverApiBase}/invoicingcheckoutservice/v1/checkouts`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Clover-Merchant-Id': merchantId,
+        Authorization: `Bearer ${privateKey}`,
       },
-      quantity: item.quantity,
-    })),
-    success_url: `${baseUrl}/success`,
-    cancel_url: `${baseUrl}/#shop`,
-  });
+      body: JSON.stringify({
+        customer: {},
+        redirectUrls: {
+          success: `${baseUrl}/success`,
+          failure: `${baseUrl}/#shop`,
+        },
+        shoppingCart: {
+          lineItems: items.map((item) => ({
+            name: item.name,
+            price: item.price * 100, // Clover uses cents (e.g. $299 → 29900)
+            unitQty: item.quantity,
+          })),
+        },
+      }),
+    }
+  );
 
-  return NextResponse.json({ url: session.url });
+  if (!res.ok) {
+    const errText = await res.text();
+    console.error('Clover API error:', errText);
+    return NextResponse.json(
+      { error: `Clover error: ${res.status} ${res.statusText} — ${errText}` },
+      { status: 500 }
+    );
+  }
+
+  const data: CloverCheckoutResponse = await res.json();
+  return NextResponse.json({ url: data.href });
 }
