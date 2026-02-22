@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Luna Silver — Handcrafted Silver Accessories Store
+
+A modern e-commerce storefront for handcrafted sterling silver jewelry, built with **Next.js 16**, **React 19**, **Tailwind CSS v4**, and **Stripe Checkout**.
+
+## Features
+
+- **Product catalog** — 15 handcrafted silver pieces across 4 categories (Necklaces, Bracelets, Earrings, Rings)
+- **Category filtering** — filter the product grid live on the client
+- **Shopping cart** — slide-in drawer with quantity controls and persistent state (localStorage)
+- **Stripe Checkout** — secure hosted payment flow via Stripe
+- **Success page** — confirmation page after payment
+- **Responsive design** — mobile-first layout with Tailwind CSS
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 + Tailwind CSS v4 |
+| Payments | Stripe Checkout (hosted) |
+| Language | TypeScript |
+| Font | Geist (via next/font) |
+
+## Project Structure
+
+```
+app/
+├── api/
+│   └── checkout/route.ts   # Stripe checkout session API
+├── components/
+│   ├── CartDrawer.tsx       # Slide-in cart UI
+│   ├── Header.tsx           # Sticky nav with cart badge
+│   ├── ProductGrid.tsx      # Product grid with category filter
+│   └── Providers.tsx        # Client-side context wrapper
+├── context/
+│   └── CartContext.tsx      # Global cart state (useReducer + localStorage)
+├── data/
+│   └── products.ts          # Product catalogue data
+├── success/
+│   └── page.tsx             # Post-payment success page
+├── globals.css
+├── layout.tsx
+└── page.tsx                 # Homepage
+public/
+└── images/products/         # Product images (jewelry_1.jpg … jewelry_15.jpg)
+```
 
 ## Getting Started
 
-First, run the development server:
+### 1. Install dependencies
+
+```bash
+npm install
+```
+
+### 2. Configure Stripe
+
+Create a `.env.local` file in the project root:
+
+```env
+# Get your keys at https://dashboard.stripe.com/apikeys
+STRIPE_SECRET_KEY=sk_test_YOUR_KEY_HERE
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+```
+
+> Use test keys (`sk_test_...`) during development. Never commit `.env.local` — it is listed in `.gitignore`.
+
+### 3. Run the development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stripe Test Cards
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Use these card numbers on the Stripe Checkout page during testing:
 
-## Learn More
+| Card | Number |
+|---|---|
+| Successful payment | `4242 4242 4242 4242` |
+| Payment declined | `4000 0000 0000 0002` |
 
-To learn more about Next.js, take a look at the following resources:
+Use any future expiry date and any 3-digit CVC.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The easiest way to deploy is [Vercel](https://vercel.com). Add your `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_BASE_URL` as environment variables in the Vercel dashboard.
 
-## Deploy on Vercel
+```bash
+# Production build check
+npm run build
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## License
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
