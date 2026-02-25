@@ -22,10 +22,10 @@ export default function ProductGrid() {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-6 py-2 rounded-full text-sm font-medium tracking-wide transition-all duration-200 cursor-pointer ${
+            className={`px-6 py-2 rounded-full text-xs font-medium tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer ${
               activeCategory === cat
-                ? 'bg-stone-800 text-white shadow-sm'
-                : 'bg-white text-stone-600 border border-stone-300 hover:border-stone-500 hover:text-stone-800'
+                ? 'bg-stone-900 text-white'
+                : 'bg-white text-stone-500 border border-stone-200 hover:border-stone-400 hover:text-stone-900'
             }`}
           >
             {cat}
@@ -72,7 +72,7 @@ export default function ProductGrid() {
         ))}
       </div>
 
-      <p className="text-center text-stone-400 text-sm mt-10">
+      <p className="text-center text-stone-400 text-xs mt-10 tracking-widest uppercase">
         Showing {filtered.length} of {products.length} pieces
       </p>
     </div>
