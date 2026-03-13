@@ -1,15 +1,23 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Montserrat, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import Providers from "./components/Providers";
 
-const geist = Geist({
-  variable: "--font-geist-sans",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
-  title: "Luna Silver | Handcrafted Silver Accessories",
+  title: "Soulfood | Handcrafted Silver Accessories",
   description:
     "Explore our collection of handcrafted sterling silver jewelry — necklaces, bracelets, earrings, and rings made with love.",
 };
@@ -21,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geist.variable} antialiased`}>
+      <body className={`${montserrat.variable} ${cormorant.variable} antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>
