@@ -2,11 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { products, CATEGORIES } from '../data/products';
+import { products, CATEGORIES, type Product } from '../data/products';
 import { useCart } from '../context/CartContext';
 
+const formatPrice = (amount: number) =>
+  new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(amount);
+
+type Category = typeof CATEGORIES[number];
+
 export default function DarkProductGrid() {
-  const [activeCategory, setActiveCategory] = useState<string>('All');
+  const [activeCategory, setActiveCategory] = useState<Category>('All');
   const { addItem } = useCart();
 
   const filtered =
@@ -22,10 +27,11 @@ export default function DarkProductGrid() {
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-5 py-1.5 text-[10px] font-medium tracking-[0.2em] uppercase transition-all duration-200 cursor-pointer ${
+            aria-pressed={activeCategory === cat}
+            className={`font-montserrat px-5 py-1.5 text-[9px] tracking-[0.25em] uppercase transition-all duration-300 cursor-pointer ${
               activeCategory === cat
                 ? 'bg-white text-black'
-                : 'border border-stone-700 text-stone-500 hover:border-stone-400 hover:text-white'
+                : 'border border-stone-800 text-stone-500 hover:border-stone-500 hover:text-stone-300'
             }`}
           >
             {cat}
@@ -33,14 +39,14 @@ export default function DarkProductGrid() {
         ))}
       </div>
 
-      {/* Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-900">
+      {/* Product Grid — key resets animation when category changes */}
+      <div key={activeCategory} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-900">
         {filtered.map((product, i) => (
           <ProductCard key={product.id} product={product} index={i} onAdd={addItem} />
         ))}
       </div>
 
-      <p className="text-stone-700 text-[10px] mt-10 tracking-[0.3em] uppercase">
+      <p className="font-montserrat text-stone-700 text-[9px] mt-10 tracking-[0.35em] uppercase">
         {filtered.length} of {products.length} pieces
       </p>
     </div>
@@ -52,12 +58,19 @@ function ProductCard({
   index,
   onAdd,
 }: {
-  product: (typeof products)[0];
+  product: Product;
   index: number;
-  onAdd: (p: (typeof products)[0]) => void;
+  onAdd: (p: Product) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  const handleAdd = () => {
+    onAdd(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1400);
+  };
 
   useEffect(() => {
     const el = ref.current;
@@ -98,31 +111,29 @@ function ProductCard({
 
       {/* Info */}
       <div className="px-5 py-5">
-        <p className="text-stone-600 text-[9px] tracking-[0.3em] uppercase mb-1.5">
+        <p className="font-montserrat text-stone-600 text-[9px] tracking-[0.3em] uppercase mb-1.5">
           {product.category}
         </p>
         <h3
-          className="text-white leading-snug mb-4"
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: '1.4rem',
-            fontWeight: 400,
-          }}
+          className="font-cormorant text-white leading-snug mb-4"
+          style={{ fontSize: '1.4rem', fontWeight: 400 }}
         >
           {product.name}
         </h3>
         <div className="flex items-center justify-between">
-          <span
-            className="text-stone-300 text-sm tracking-wider"
-            style={{ fontFamily: 'var(--font-montserrat)' }}
-          >
-            ${product.price}
+          <span className="font-montserrat text-stone-300 text-sm tracking-wider">
+            {formatPrice(product.price)}
           </span>
           <button
-            onClick={() => onAdd(product)}
-            className="text-[9px] font-medium tracking-[0.25em] uppercase border border-white/20 px-5 py-2 text-white/70 hover:bg-white hover:text-black hover:border-white transition-all duration-200 cursor-pointer active:scale-95"
+            onClick={handleAdd}
+            aria-label={`Add ${product.name} to cart`}
+            className={`font-montserrat text-[9px] tracking-[0.25em] uppercase border px-5 py-2 transition-all duration-300 cursor-pointer active:scale-95 ${
+              added
+                ? 'border-white/50 text-white/90'
+                : 'border-white/20 text-white/60 hover:border-white/50 hover:text-white/90'
+            }`}
           >
-            Add to Cart
+            {added ? '✓ Added' : 'Add to Cart'}
           </button>
         </div>
       </div>

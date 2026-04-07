@@ -1,6 +1,14 @@
 'use client';
 
-import { createContext, useContext, useReducer, useEffect, useState } from 'react';
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+} from 'react';
 import type { Product } from '../data/products';
 
 export type CartItem = Product & { quantity: number };
@@ -66,21 +74,39 @@ type CartContextType = {
 
 const CartContext = createContext<CartContextType | null>(null);
 
-const STORAGE_KEY = 'luna-silver-cart';
+export const STORAGE_KEY = 'soulfood-cart';
+
+/** Validate localStorage data before trusting it */
+function parseStoredItems(raw: string): CartItem[] {
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item): item is CartItem =>
+        typeof item?.id === 'number' &&
+        typeof item?.name === 'string' &&
+        typeof item?.price === 'number' &&
+        typeof item?.image === 'string' &&
+        typeof item?.category === 'string' &&
+        typeof item?.quantity === 'number' &&
+        item.quantity > 0 &&
+        item.price > 0
+    );
+  } catch {
+    return [];
+  }
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [], isOpen: false });
   const [hydrated, setHydrated] = useState(false);
 
-  // Rehydrate from localStorage on mount
+  // Rehydrate from localStorage on mount with schema validation
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        dispatch({ type: 'HYDRATE', items: JSON.parse(stored) });
-      }
-    } catch {
-      // ignore parse errors
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const items = parseStoredItems(stored);
+      if (items.length > 0) dispatch({ type: 'HYDRATE', items });
     }
     setHydrated(true);
   }, []);
@@ -91,26 +117,41 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state.items));
   }, [state.items, hydrated]);
 
-  const totalItems = state.items.reduce((sum, i) => sum + i.quantity, 0);
-  const totalPrice = state.items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-  return (
-    <CartContext.Provider
-      value={{
-        items: state.items,
-        isOpen: state.isOpen,
-        totalItems,
-        totalPrice,
-        addItem: (product) => dispatch({ type: 'ADD_ITEM', product }),
-        removeItem: (id) => dispatch({ type: 'REMOVE_ITEM', id }),
-        updateQuantity: (id, qty) => dispatch({ type: 'UPDATE_QTY', id, qty }),
-        clearCart: () => dispatch({ type: 'CLEAR' }),
-        setIsOpen: (open) => dispatch({ type: 'SET_OPEN', open }),
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  const totalItems = useMemo(
+    () => state.items.reduce((sum, i) => sum + i.quantity, 0),
+    [state.items]
   );
+
+  const totalPrice = useMemo(
+    () => state.items.reduce((sum, i) => sum + i.price * i.quantity, 0),
+    [state.items]
+  );
+
+  const addItem = useCallback((product: Product) => dispatch({ type: 'ADD_ITEM', product }), []);
+  const removeItem = useCallback((id: number) => dispatch({ type: 'REMOVE_ITEM', id }), []);
+  const updateQuantity = useCallback(
+    (id: number, qty: number) => dispatch({ type: 'UPDATE_QTY', id, qty }),
+    []
+  );
+  const clearCart = useCallback(() => dispatch({ type: 'CLEAR' }), []);
+  const setIsOpen = useCallback((open: boolean) => dispatch({ type: 'SET_OPEN', open }), []);
+
+  const contextValue = useMemo(
+    () => ({
+      items: state.items,
+      isOpen: state.isOpen,
+      totalItems,
+      totalPrice,
+      addItem,
+      removeItem,
+      updateQuantity,
+      clearCart,
+      setIsOpen,
+    }),
+    [state.items, state.isOpen, totalItems, totalPrice, addItem, removeItem, updateQuantity, clearCart, setIsOpen]
+  );
+
+  return <CartContext.Provider value={contextValue}>{children}</CartContext.Provider>;
 }
 
 export function useCart(): CartContextType {

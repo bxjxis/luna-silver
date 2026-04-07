@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-stone-50 flex items-center justify-center px-6">
@@ -19,12 +21,12 @@ export default function SuccessPage() {
           Your handcrafted piece is on its way. You&apos;ll receive a confirmation email shortly. Each item is carefully packaged with love.
         </p>
 
-        <a
+        <Link
           href="/"
           className="inline-block bg-stone-800 text-white font-semibold px-8 py-3 rounded-full hover:bg-stone-700 transition-colors"
         >
           Continue Shopping
-        </a>
+        </Link>
       </div>
     </div>
   );

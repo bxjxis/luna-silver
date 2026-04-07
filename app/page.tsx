@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Header from './components/Header';
 import ProductSlider from './components/ProductSlider';
 import ScrollReveal from './components/ScrollReveal';
+import { products } from './data/products';
 
 export default function Home() {
   return (
@@ -28,43 +29,35 @@ export default function Home() {
 
         {/* Content */}
         <div className="relative z-10 text-center px-6 select-none">
-          <p
-            className="text-stone-600 text-[9px] tracking-[0.6em] uppercase mb-10"
-            style={{ fontFamily: 'var(--font-montserrat)' }}
-          >
+          <p className="font-montserrat text-stone-600 text-[9px] tracking-[0.6em] uppercase mb-10">
             Handcrafted S925 Sterling Silver
           </p>
 
-          <h1
-            className="text-white leading-none mb-8"
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: 'clamp(5rem, 18vw, 16rem)',
-              fontWeight: 300,
-              letterSpacing: '0.05em',
-            }}
-          >
-            Soulfood
-          </h1>
+          <div className="mb-10 flex justify-center">
+            <Image
+              src="/logo-wordmark.png"
+              alt="Soulfood"
+              width={700}
+              height={261}
+              className="w-full max-w-[min(700px,85vw)] object-contain"
+              priority
+            />
+          </div>
 
-          <p
-            className="text-stone-500 text-[10px] tracking-[0.4em] uppercase mb-14"
-            style={{ fontFamily: 'var(--font-montserrat)' }}
-          >
+          <p className="font-montserrat text-stone-500 text-[10px] tracking-[0.5em] uppercase mb-14">
             Pure Silver · Pure Artistry
           </p>
 
           <a
             href="#products"
-            className="inline-block border border-white/20 text-white/70 text-[10px] font-medium tracking-[0.3em] uppercase px-10 py-4 hover:bg-white hover:text-black hover:border-white transition-all duration-300"
-            style={{ fontFamily: 'var(--font-montserrat)' }}
+            className="font-montserrat inline-block border border-white/25 text-white/60 text-[9px] tracking-[0.35em] uppercase px-10 py-4 hover:border-white/60 hover:text-white/90 transition-all duration-500"
           >
-            Explore
+            Explore the Collection
           </a>
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30">
+        <div aria-hidden="true" className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-30">
           <div className="w-px h-12 bg-white animate-pulse" />
         </div>
       </section>
@@ -81,26 +74,16 @@ export default function Home() {
         <div className="absolute inset-0 bg-black/70" />
         <div className="relative z-10 text-center px-6 max-w-3xl mx-auto">
           <ScrollReveal>
-            <p
-              className="text-stone-500 text-[9px] tracking-[0.5em] uppercase mb-8"
-              style={{ fontFamily: 'var(--font-montserrat)' }}
-            >
+            <p className="font-montserrat text-stone-500 text-[9px] tracking-[0.5em] uppercase mb-8">
               Our Craft
             </p>
             <h2
-              className="text-white leading-tight mb-8"
-              style={{
-                fontFamily: 'var(--font-cormorant)',
-                fontSize: 'clamp(2.5rem, 7vw, 5rem)',
-                fontWeight: 300,
-              }}
+              className="font-cormorant text-white leading-tight mb-8"
+              style={{ fontSize: 'clamp(2.5rem, 7vw, 5rem)', fontWeight: 300 }}
             >
               Made by Hand.<br />Made to Last.
             </h2>
-            <p
-              className="text-stone-400 text-sm font-light leading-relaxed max-w-xl mx-auto"
-              style={{ fontFamily: 'var(--font-montserrat)' }}
-            >
+            <p className="font-montserrat text-stone-400 text-sm font-light leading-relaxed max-w-xl mx-auto">
               Each piece is forged in our studio using traditional silversmithing
               techniques. No mass production — only intention, patience, and 925 sterling silver.
             </p>
@@ -113,27 +96,19 @@ export default function Home() {
         <ScrollReveal>
           <div className="px-6 md:px-16 mb-10 flex items-end justify-between max-w-none">
             <div>
-              <p
-                className="text-stone-600 text-[9px] tracking-[0.5em] uppercase mb-3"
-                style={{ fontFamily: 'var(--font-montserrat)' }}
-              >
+              <p className="font-montserrat text-stone-600 text-[9px] tracking-[0.5em] uppercase mb-3">
                 Sterling Silver
               </p>
               <h2
-                className="text-white leading-none"
-                style={{
-                  fontFamily: 'var(--font-cormorant)',
-                  fontSize: 'clamp(2.5rem, 6vw, 5rem)',
-                  fontWeight: 300,
-                }}
+                className="font-cormorant text-white leading-none"
+                style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', fontWeight: 300 }}
               >
                 Our Products
               </h2>
             </div>
             <Link
               href="/collection"
-              className="hidden md:block text-[9px] text-stone-500 tracking-[0.3em] uppercase hover:text-white transition-colors pb-2"
-              style={{ fontFamily: 'var(--font-montserrat)' }}
+              className="font-montserrat hidden md:block text-[9px] text-stone-500 tracking-[0.3em] uppercase hover:text-white transition-colors pb-2"
             >
               View all →
             </Link>
@@ -141,8 +116,16 @@ export default function Home() {
         </ScrollReveal>
 
         {/* Swiper slider — next card partially visible signals scrollability */}
-        <div className="overflow-hidden">
-          <ProductSlider />
+        <ProductSlider />
+
+        {/* Mobile "View all" — desktop shows it in the header above */}
+        <div className="md:hidden px-6 mt-8">
+          <Link
+            href="/collection"
+            className="font-montserrat text-[9px] text-stone-500 tracking-[0.3em] uppercase hover:text-white transition-colors"
+          >
+            View all {products.length} pieces →
+          </Link>
         </div>
       </section>
 
@@ -153,29 +136,18 @@ export default function Home() {
       >
         <div className="text-center max-w-2xl mx-auto">
           <ScrollReveal>
-            <p
-              className="text-stone-700 text-[9px] tracking-[0.5em] uppercase mb-10"
-              style={{ fontFamily: 'var(--font-montserrat)' }}
-            >
+            <p className="font-montserrat text-stone-700 text-[9px] tracking-[0.5em] uppercase mb-10">
               Our Story
             </p>
             <blockquote
-              className="text-white leading-snug mb-10"
-              style={{
-                fontFamily: 'var(--font-cormorant)',
-                fontSize: 'clamp(1.8rem, 5vw, 3.5rem)',
-                fontWeight: 300,
-                fontStyle: 'italic',
-              }}
+              className="font-cormorant text-white leading-snug mb-10 italic"
+              style={{ fontSize: 'clamp(1.8rem, 5vw, 3.5rem)', fontWeight: 300 }}
             >
               &ldquo;We believe jewelry should be meaningful, lasting, and uniquely yours.&rdquo;
             </blockquote>
           </ScrollReveal>
           <ScrollReveal delay={200}>
-            <p
-              className="text-stone-500 text-sm font-light leading-relaxed"
-              style={{ fontFamily: 'var(--font-montserrat)' }}
-            >
+            <p className="font-montserrat text-stone-500 text-sm font-light leading-relaxed">
               Soulfood was born from a deep love of traditional silversmithing.
               Founded in our small Canadian studio, we blend ancient techniques
               with modern sensibility — creating pieces that carry history and soul.
@@ -192,16 +164,13 @@ export default function Home() {
       >
         <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
           <div>
-            <h3
-              className="text-white mb-4"
-              style={{
-                fontFamily: 'var(--font-cormorant)',
-                fontSize: '1.5rem',
-                fontWeight: 400,
-              }}
-            >
-              Soulfood
-            </h3>
+            <Image
+              src="/logo-badge.png"
+              alt="Soulfood"
+              width={64}
+              height={64}
+              className="object-contain mb-4"
+            />
             <p className="text-stone-600 text-xs font-light leading-relaxed tracking-wide">
               Handcrafted silver accessories made with care and passion.
             </p>

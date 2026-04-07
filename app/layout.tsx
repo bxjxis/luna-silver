@@ -20,6 +20,13 @@ export const metadata: Metadata = {
   title: "Soulfood | Handcrafted Silver Accessories",
   description:
     "Explore our collection of handcrafted sterling silver jewelry — necklaces, bracelets, earrings, and rings made with love.",
+  openGraph: {
+    title: "Soulfood | Handcrafted Silver Accessories",
+    description:
+      "Explore our collection of handcrafted sterling silver jewelry — necklaces, bracelets, earrings, and rings made with love.",
+    type: "website",
+    locale: "en_CA",
+  },
 };
 
 export default function RootLayout({

@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { useCart } from '../context/CartContext';
+import { useCart, STORAGE_KEY } from '../context/CartContext';
+
+const formatPrice = (amount: number) =>
+  new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(amount);
 
 export default function CartDrawer() {
   const { items, isOpen, setIsOpen, removeItem, updateQuantity, totalPrice, clearCart } =
@@ -10,17 +13,33 @@ export default function CartDrawer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Close drawer with Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [isOpen, setIsOpen]);
+
   async function handleCheckout() {
     setLoading(true);
     setError(null);
     try {
+      // Send only id + quantity — prices are resolved server-side
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
+        body: JSON.stringify({
+          items: items.map((i) => ({ id: i.id, quantity: i.quantity })),
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Checkout failed');
+
+      // Synchronously clear localStorage before navigating to avoid race condition
+      localStorage.removeItem(STORAGE_KEY);
       clearCart();
       window.location.href = data.url;
     } catch (err) {
@@ -31,9 +50,13 @@ export default function CartDrawer() {
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — keyboard dismissible */}
       <div
+        role="button"
+        tabIndex={isOpen ? 0 : -1}
+        aria-label="Close cart"
         onClick={() => setIsOpen(false)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsOpen(false); }}
         className={`fixed inset-0 z-40 bg-black/40 transition-opacity duration-300 ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
@@ -41,6 +64,9 @@ export default function CartDrawer() {
 
       {/* Drawer panel */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Shopping cart"
         className={`fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white shadow-2xl flex flex-col transition-transform duration-300 ease-in-out ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
@@ -101,14 +127,14 @@ export default function CartDrawer() {
                   <p className="text-sm font-semibold text-stone-800 leading-snug mt-0.5 truncate">
                     {item.name}
                   </p>
-                  <p className="text-sm font-bold text-stone-800 mt-1">${item.price}</p>
+                  <p className="text-sm font-bold text-stone-800 mt-1">{formatPrice(item.price)}</p>
 
                   {/* Qty controls */}
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       className="w-7 h-7 rounded-full border border-stone-200 flex items-center justify-center text-stone-600 hover:border-stone-400 transition-colors cursor-pointer text-sm"
-                      aria-label="Decrease quantity"
+                      aria-label={`Decrease quantity of ${item.name}`}
                     >
                       −
                     </button>
@@ -118,7 +144,7 @@ export default function CartDrawer() {
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       className="w-7 h-7 rounded-full border border-stone-200 flex items-center justify-center text-stone-600 hover:border-stone-400 transition-colors cursor-pointer text-sm"
-                      aria-label="Increase quantity"
+                      aria-label={`Increase quantity of ${item.name}`}
                     >
                       +
                     </button>
@@ -129,7 +155,7 @@ export default function CartDrawer() {
                 <button
                   onClick={() => removeItem(item.id)}
                   className="text-stone-300 hover:text-red-400 transition-colors cursor-pointer flex-shrink-0 mt-1"
-                  aria-label="Remove item"
+                  aria-label={`Remove ${item.name} from cart`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -145,14 +171,14 @@ export default function CartDrawer() {
           <div className="border-t border-stone-100 px-6 py-5 space-y-4">
             <div className="flex items-center justify-between text-stone-800">
               <span className="font-medium">Subtotal</span>
-              <span className="text-xl font-bold">${totalPrice.toLocaleString()}</span>
+              <span className="text-xl font-bold">{formatPrice(totalPrice)}</span>
             </div>
             <p className="text-xs text-stone-400">
-              Shipping & taxes calculated at checkout
+              Shipping &amp; taxes calculated at checkout
             </p>
 
             {error && (
-              <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{error}</p>
+              <p className="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2" role="alert">{error}</p>
             )}
 
             <button
@@ -162,16 +188,25 @@ export default function CartDrawer() {
             >
               {loading ? (
                 <>
-                  <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                   </svg>
-                  Redirecting to Clover…
+                  Processing…
                 </>
               ) : (
-                'Checkout with Clover →'
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                  </svg>
+                  Secure Checkout
+                </>
               )}
             </button>
+
+            <p className="text-center font-montserrat text-[9px] text-stone-400 tracking-[0.15em]">
+              Secured by Clover · SSL encrypted
+            </p>
 
             <button
               onClick={() => setIsOpen(false)}

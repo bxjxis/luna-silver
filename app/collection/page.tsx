@@ -14,19 +14,12 @@ export default function CollectionPage() {
 
       {/* Page header */}
       <div className="pt-40 pb-10 px-6 md:px-16 max-w-7xl mx-auto">
-        <p
-          className="text-stone-600 text-[10px] tracking-[0.5em] uppercase mb-4"
-          style={{ fontFamily: 'var(--font-montserrat)' }}
-        >
-          Handcrafted S925 Sterling Silver
+        <p className="font-montserrat text-stone-600 text-[10px] tracking-[0.5em] uppercase mb-4">
+          Handcrafted Sterling Silver
         </p>
         <h1
-          className="text-white leading-none mb-2"
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: 'clamp(3.5rem, 10vw, 8rem)',
-            fontWeight: 300,
-          }}
+          className="font-cormorant text-white leading-none mb-2"
+          style={{ fontSize: 'clamp(3.5rem, 10vw, 8rem)', fontWeight: 300 }}
         >
           Collection
         </h1>
