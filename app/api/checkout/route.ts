@@ -27,7 +27,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Payment service misconfigured.' }, { status: 500 });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
   // Parse body — never trust client-provided prices or names
   let requestItems: RequestItem[];
