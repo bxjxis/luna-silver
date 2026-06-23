@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Cormorant_Garamond } from "next/font/google";
 import "./globals.css";
 import Providers from "./components/Providers";
+import Preloader from "./components/Preloader";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -37,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${montserrat.variable} ${cormorant.variable} antialiased`}>
+        <Preloader />
         <Providers>{children}</Providers>
       </body>
     </html>

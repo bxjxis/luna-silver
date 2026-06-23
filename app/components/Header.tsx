@@ -1,25 +1,43 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { useCart } from '../context/CartContext';
 import CartDrawer from './CartDrawer';
 
 const SCROLL_THRESHOLD = 80;
 
 const NAV_LINKS = [
-  { href: '/',          label: 'Home' },
-  { href: '/collection', label: 'Collection' },
-  { href: '/bespoke',   label: 'Bespoke' },
-  { href: '/#about',    label: 'About' },
-  { href: '/#contact',  label: 'Contact' },
+  { href: '/collection', label: 'Shop' },
+  { href: '/bespoke',    label: 'Custom' },
+  { href: '/#about',     label: 'About' },
+  { href: '/#contact',   label: 'Contact' },
 ] as const;
 
 export default function Header() {
   const { totalItems, setIsOpen } = useCart();
-  const [scrolled, setScrolled]     = useState(false);
-  const [menuOpen, setMenuOpen]      = useState(false);
+  const [scrolled, setScrolled]       = useState(false);
+  const [menuOpen, setMenuOpen]        = useState(false);
+  const [searchOpen, setSearchOpen]    = useState(false);
+  const router = useRouter();
+  const [query, setQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = query.trim();
+    router.push(q ? `/collection?q=${encodeURIComponent(q)}` : '/collection');
+    setSearchOpen(false);
+    setQuery('');
+    setMenuOpen(false);
+  };
+
+  const openSearch = () => {
+    setSearchOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > SCROLL_THRESHOLD);
@@ -27,7 +45,13 @@ export default function Header() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close mobile menu on Escape
+  useEffect(() => {
+    if (!searchOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { setSearchOpen(false); setQuery(''); } };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [searchOpen]);
+
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
@@ -35,7 +59,6 @@ export default function Header() {
     return () => document.removeEventListener('keydown', onKey);
   }, [menuOpen]);
 
-  // Prevent body scroll while menu is open
   useEffect(() => {
     document.body.style.overflow = menuOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
@@ -50,32 +73,68 @@ export default function Header() {
             : 'bg-transparent'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-6 md:px-16 h-16 flex items-center justify-between">
+        <div className="w-full px-5 md:px-8 h-20 grid grid-cols-3 items-center">
 
-          {/* Logo */}
-          <Link href="/" className="flex items-center hover:opacity-70 transition-opacity">
+          {/* Logo — left */}
+          <Link href="/" className="flex items-center hover:opacity-70 transition-opacity shrink-0">
             <Image
-              src="/logo-badge.png"
+              src="/logo-wordmark.png"
               alt="Soulfood"
-              width={44}
-              height={44}
-              className="object-contain"
+              width={700}
+              height={261}
+              className="h-[72px] w-auto object-contain"
               priority
             />
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Nav — truly centred */}
           <nav
-            className="hidden md:flex gap-10 text-stone-500 hover:[&_a]:text-white [&_a]:transition-colors font-montserrat"
-            style={{ fontSize: '0.6rem', letterSpacing: '0.25em' }}
+            className="hidden md:flex justify-center gap-10 text-stone-500 hover:[&_a]:text-white [&_a]:transition-colors font-montserrat"
+            style={{ fontSize: '0.75rem', letterSpacing: '0.25em' }}
           >
             {NAV_LINKS.map(({ href, label }) => (
               <Link key={href} href={href} className="uppercase">{label}</Link>
             ))}
           </nav>
 
-          {/* Right: Cart + Hamburger */}
-          <div className="flex items-center gap-1">
+          {/* Right: Search + Cart + Hamburger */}
+          <div className="flex items-center justify-end gap-1">
+
+            {/* Search — icon only, expands on click */}
+            <div className="hidden sm:flex items-center">
+              {searchOpen ? (
+                <form
+                  onSubmit={handleSearch}
+                  className="flex items-center gap-2 border-b border-stone-400 transition-colors"
+                >
+                  <input
+                    ref={inputRef}
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search"
+                    aria-label="Search the collection"
+                    className="font-montserrat bg-transparent w-32 lg:w-44 py-1.5 text-[10px] tracking-[0.25em] uppercase text-stone-200 placeholder:text-stone-600 focus:outline-none"
+                  />
+                  <button type="submit" aria-label="Submit search" className="p-2 text-stone-400 hover:text-white transition-colors cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                    </svg>
+                  </button>
+                </form>
+              ) : (
+                <button
+                  onClick={openSearch}
+                  aria-label="Open search"
+                  className="p-2 text-stone-500 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
             {/* Cart */}
             <button
               onClick={() => setIsOpen(true)}
@@ -130,6 +189,24 @@ export default function Header() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
         </button>
+
+        {/* Mobile search */}
+        <form
+          onSubmit={handleSearch}
+          className="flex items-center gap-3 mb-12 border-b border-stone-700 focus-within:border-stone-400 transition-colors px-1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-stone-500" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search"
+            aria-label="Search the collection"
+            className="font-montserrat bg-transparent w-56 py-2 text-xs tracking-[0.3em] uppercase text-stone-200 placeholder:text-stone-600 focus:outline-none"
+          />
+        </form>
 
         {/* Nav links */}
         <nav className="flex flex-col items-center gap-10" aria-label="Mobile navigation">
