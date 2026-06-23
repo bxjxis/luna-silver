@@ -37,7 +37,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} ${cormorant.variable} antialiased`}>
+      <body
+        className={`${montserrat.variable} ${cormorant.variable} antialiased`}
+      >
         <Preloader />
         <Providers>{children}</Providers>
       </body>

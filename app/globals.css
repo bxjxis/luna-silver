@@ -3,11 +3,11 @@
 /* ── Warm OKLCH color tokens ─────────────────────────────────────────────── */
 :root {
   /* Warm black (stone-950 with warm chroma) */
-  --color-void:   oklch(8%  0.008 60);
+  --color-void: oklch(8% 0.008 60);
   /* Warm white (off-white with warm chroma) */
-  --color-silk:   oklch(96% 0.007 60);
+  --color-silk: oklch(96% 0.007 60);
   /* Accent gold — used sparingly */
-  --color-gold:   oklch(72% 0.12  80);
+  --color-gold: oklch(72% 0.12 80);
 
   --background: var(--color-silk);
   --foreground: var(--color-void);
@@ -16,8 +16,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans:   var(--font-montserrat);
-  --font-serif:  var(--font-cormorant);
+  --font-sans: var(--font-montserrat);
+  --font-serif: var(--font-cormorant);
 }
 
 /* ── Base ────────────────────────────────────────────────────────────────── */
@@ -71,14 +71,22 @@ body {
 }
 
 /* ── Font utility classes ────────────────────────────────────────────────── */
-.font-cormorant  { font-family: var(--font-cormorant); }
-.font-montserrat { font-family: var(--font-montserrat); }
+.font-cormorant {
+  font-family: var(--font-cormorant);
+}
+.font-montserrat {
+  font-family: var(--font-montserrat);
+}
 
 /* Cormorant-specific: enable discretionary ligatures & kerning */
 .font-cormorant {
   font-variant-ligatures: common-ligatures discretionary-ligatures;
   font-kerning: normal;
-  font-feature-settings: "kern" 1, "liga" 1, "dlig" 1, "onum" 1;
+  font-feature-settings:
+    "kern" 1,
+    "liga" 1,
+    "dlig" 1,
+    "onum" 1;
 }
 
 /* ── Fade-in-up animation (for collection page cards) ────────────────────── */

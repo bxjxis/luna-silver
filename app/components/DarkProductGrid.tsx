@@ -1,54 +1,76 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import { products, CATEGORIES, type Product } from '../data/products';
-import { useCart } from '../context/CartContext';
+import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { products, CATEGORIES, type Product } from "../data/products";
+import { useCart } from "../context/CartContext";
 
 const formatPrice = (amount: number) =>
-  new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(amount);
+  new Intl.NumberFormat("en-CA", { style: "currency", currency: "CAD" }).format(amount);
 
-type Category = typeof CATEGORIES[number];
+type Category = (typeof CATEGORIES)[number];
+
+/* ── Design tokens ── */
+const C = {
+  bg:        "#111111",
+  card:      "#1C1C1E",
+  border:    "#2C2C2E",
+  textPrimary:   "#FFFFFF",
+  textMuted:     "#8E8E93",
+};
 
 export default function DarkProductGrid() {
-  const [activeCategory, setActiveCategory] = useState<Category>('All');
+  const [activeCategory, setActiveCategory] = useState<Category>("All");
   const { addItem } = useCart();
 
   const filtered =
-    activeCategory === 'All'
+    activeCategory === "All"
       ? products
       : products.filter((p) => p.category === activeCategory);
 
   return (
     <div>
-      {/* Category Filters */}
-      <div className="flex flex-wrap gap-3 mb-14">
+      {/* ── Filter bar ── */}
+      <div
+        className="flex flex-wrap items-center gap-x-8 gap-y-3 mb-14 pb-6"
+        style={{ borderBottom: `1px solid ${C.border}` }}
+      >
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
             aria-pressed={activeCategory === cat}
-            className={`font-montserrat px-5 py-1.5 text-[9px] tracking-[0.25em] uppercase transition-all duration-300 cursor-pointer ${
-              activeCategory === cat
-                ? 'bg-white text-black'
-                : 'border border-stone-800 text-stone-500 hover:border-stone-500 hover:text-stone-300'
-            }`}
+            className="font-montserrat text-[10px] tracking-[0.35em] uppercase transition-all duration-300 cursor-pointer pb-0.5"
+            style={{
+              color: activeCategory === cat ? C.textPrimary : C.textMuted,
+              borderBottom: activeCategory === cat ? `1px solid ${C.textPrimary}` : "1px solid transparent",
+            }}
           >
             {cat}
           </button>
         ))}
+        <span
+          className="font-montserrat text-[10px] tracking-[0.3em] uppercase ml-auto"
+          style={{ color: C.textMuted }}
+        >
+          {filtered.length} {filtered.length === 1 ? "piece" : "pieces"}
+        </span>
       </div>
 
-      {/* Product Grid — key resets animation when category changes */}
-      <div key={activeCategory} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-stone-900">
+      {/* ── Product grid ── */}
+      <div
+        key={activeCategory}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-14"
+      >
         {filtered.map((product, i) => (
-          <ProductCard key={product.id} product={product} index={i} onAdd={addItem} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            index={i}
+            onAdd={addItem}
+          />
         ))}
       </div>
-
-      <p className="font-montserrat text-stone-700 text-[9px] mt-10 tracking-[0.35em] uppercase">
-        {filtered.length} of {products.length} pieces
-      </p>
     </div>
   );
 }
@@ -76,13 +98,8 @@ function ProductCard({
     const el = ref.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.unobserve(el);
-        }
-      },
-      { threshold: 0.1 }
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.unobserve(el); } },
+      { threshold: 0.08 }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -91,51 +108,77 @@ function ProductCard({
   return (
     <div
       ref={ref}
-      className="group bg-black animate-fade-in-up"
+      className="group cursor-pointer"
       style={{
-        animationDelay: `${(index % 3) * 80}ms`,
-        opacity: visible ? undefined : 0,
-        animation: visible ? undefined : 'none',
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateY(0)" : "translateY(24px)",
+        transition: `opacity 0.55s ease ${(index % 3) * 80}ms, transform 0.55s ease ${(index % 3) * 80}ms`,
+        borderRadius: "4px",
+        overflow: "hidden",
       }}
     >
-      {/* Image */}
-      <div className="relative overflow-hidden bg-stone-950" style={{ aspectRatio: '4/5' }}>
+      {/* Image wrapper */}
+      <div
+        className="relative overflow-hidden mb-0"
+        style={{ aspectRatio: "4/5", background: C.card }}
+      >
         <Image
           src={product.image}
           alt={product.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover opacity-85 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-out"
+          className="object-cover opacity-90 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 ease-out"
         />
-      </div>
 
-      {/* Info */}
-      <div className="px-5 py-5">
-        <p className="font-montserrat text-stone-600 text-[9px] tracking-[0.3em] uppercase mb-1.5">
-          {product.category}
-        </p>
-        <h3
-          className="font-cormorant text-white leading-snug mb-4"
-          style={{ fontSize: '1.4rem', fontWeight: 400 }}
+        {/* Hover overlay — Add to Cart */}
+        <div
+          className="absolute inset-0 flex items-end justify-center pb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-400"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 55%)" }}
         >
-          {product.name}
-        </h3>
-        <div className="flex items-center justify-between">
-          <span className="font-montserrat text-stone-300 text-sm tracking-wider">
-            {formatPrice(product.price)}
-          </span>
           <button
             onClick={handleAdd}
             aria-label={`Add ${product.name} to cart`}
-            className={`font-montserrat text-[9px] tracking-[0.25em] uppercase border px-5 py-2 transition-all duration-300 cursor-pointer active:scale-95 ${
-              added
-                ? 'border-white/50 text-white/90'
-                : 'border-white/20 text-white/60 hover:border-white/50 hover:text-white/90'
-            }`}
+            className="font-montserrat text-[9px] tracking-[0.3em] uppercase px-8 py-3 transition-all duration-300 cursor-pointer"
+            style={{
+              border: `1px solid ${added ? "#fff" : "rgba(255,255,255,0.7)"}`,
+              color: "#fff",
+              background: added ? "rgba(255,255,255,0.12)" : "transparent",
+            }}
           >
-            {added ? '✓ Added' : 'Add to Cart'}
+            {added ? "✓ Added" : "Add to Cart"}
           </button>
         </div>
+      </div>
+
+      {/* Metadata */}
+      <div
+        className="px-4 py-4"
+        style={{ background: C.card, borderTop: `1px solid ${C.border}` }}
+      >
+        <p
+          className="font-montserrat text-[9px] tracking-[0.35em] uppercase mb-2"
+          style={{ color: C.textMuted }}
+        >
+          {product.category} · S925 Sterling Silver
+        </p>
+        <h3
+          className="font-cormorant leading-snug mb-1.5"
+          style={{ fontSize: "1.25rem", fontWeight: 400, color: C.textPrimary }}
+        >
+          {product.name}
+        </h3>
+        <p
+          className="font-montserrat text-xs leading-relaxed mb-3"
+          style={{ color: C.textMuted, fontWeight: 300 }}
+        >
+          {product.description}
+        </p>
+        <span
+          className="font-montserrat text-xs tracking-wider"
+          style={{ color: "#A1A1A5" }}
+        >
+          {formatPrice(product.price)}
+        </span>
       </div>
     </div>
   );
